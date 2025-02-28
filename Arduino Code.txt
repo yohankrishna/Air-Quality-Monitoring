@@ -1,0 +1,63 @@
+#include "arduino_secrets.h" 
+#include <DHT.h> 
+#include "thingProperties.h"  // Include Arduino IoT Cloud properties 
+#define DHTPIN D2     // GPIO4 on ESP8266 (D2) 
+#define DHTTYPE DHT11 // DHT11 sensor 
+DHT dht(DHTPIN, DHTTYPE); 
+int sensor = A0;  // Assuming you're using A0 for air quality 
+void setup() { 
+  Serial.begin(9600); 
+  Serial.println("DHT11 Test"); 
+  delay(1000); 
+  dht.begin(); 
+ 
+  initProperties(); 
+  ArduinoCloud.begin(ArduinoIoTPreferredConnection); 
+  setDebugMessageLevel(2); 
+  ArduinoCloud.printDebugInfo(); 
+} 
+void loop() { 
+  ArduinoCloud.update(); 
+  readSensors(); 
+  delay(15000); 
+} 
+ 
+void readSensors() { 
+  // Reading temperature and humidity 
+  float humidityValue = dht.readHumidity(); 
+  float temperatureValue = dht.readTemperature(); 
+ 
+  // Check if readings failed and handle accordingly 
+  if (isnan(humidityValue) || isnan(temperatureValue)) { 
+    Serial.println("Failed to read from DHT sensor! Retrying..."); 
+    return;  // If you get NaN, skip the rest of the function 
+  } 
+ 
+  Serial.print("Humidity: "); 
+  Serial.print(humidityValue); 
+  Serial.print(" %\t"); 
+  Serial.print("Temperature: "); 
+  Serial.print(temperatureValue); 
+  Serial.println(" *C"); 
+  humidity = humidityValue; 
+  temperature = temperatureValue; 
+  int airqualityValue = analogRead(sensor); 
+  Serial.print("Gas Value: "); 
+  Serial.println(airqualityValue); 
+  airquality = airqualityValue; 
+  message = "Temperature = " + String(temperature) + " *C, Humidity = " + String(humidity) 
++ " %, Air Quality = " + String(airqualityValue); 
+    Serial.println(message); 
+} 
+void onTemperatureChange() { 
+  // Add your code here to act upon Temperature change 
+} 
+void onHumidityChange() { 
+  // Add your code here to act upon Humidity change 
+} 
+void onAirqualityChange() { 
+  // Add your code here to act upon Air quality change 
+} 
+void onMessageChange() { 
+  // Add your code here to act upon Message change 
+}
